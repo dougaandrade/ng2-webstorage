@@ -9,13 +9,16 @@ It provides also two decorators to synchronize the component attributes and the 
 
 #### Index:
 * [Getting Started](#gstart)
-    * [Provider Function](#provider_fn)
 * [Services](#services):
-	* [LocalStorageService](#s_localstorage)
-	* [SessionStorageService](#s_sessionstorage)
+	* [`LocalStorageService` & `SessionStorageService`](#localsession)
+		* [`Store(key, value)`](#s_store)
+  		* [`Retrieve(key)`](#s_retrieve)
+    	* [`Clear(key)`](#s_clear)
+     	* [`IsStorageAvailable()`](s_isStorageAvailable)
+      	* [`Observe(key)`](s_observe)   
 * [Decorators](#decorators):
-	* [@LocalStorage](#d_localstorage)
-	* [@SessionStorage](#d_sessionStorage)
+	* [`@LocalStorage`](#d_localstorage)
+	* [`@SessionStorage`](#d_sessionStorage)
 * [Known issues](#knownissues)
 * [Modify and build](#modifBuild)
 
@@ -32,7 +35,9 @@ It provides also two decorators to synchronize the component attributes and the 
 
 1. Update your project to Angular 18+
 2. Rename the module usages by <b>provideNgxWebstorage()</b> *(before: NgxWebstorageModule.forRoot())*
-3. Add the new provider functions to configure the library
+3. Using npm `npm install --save ngx-webstorage@^18.0.0 {version of your preference}`
+   >See if your angular version is existing in the releases
+5. Add the new provider functions to configure the library
 ```typescript
 	provideNgxWebstorage(
 		withNgxWebstorageConfig({ separator: ':', caseSensitive: true }),
@@ -48,30 +53,24 @@ It provides also two decorators to synchronize the component attributes and the 
 2. Declare the library in your main module
 
 	```typescript
-	import {NgModule} from '@angular/core';
-	import {BrowserModule} from '@angular/platform-browser';
-	import {provideNgxWebstorage, withNgxWebstorageConfig} from 'ngx-webstorage';
+	import { ApplicationConfig, importProvidersFrom } from '@angular/core';
 
-	@NgModule({
-		declarations: [...],
-		imports: [
-			BrowserModule
-		],
-		providers: [
-			provideNgxWebstorage(),
-			//provideNgxWebstorage(
-			//  withNgxWebstorageConfig({ prefix: 'custom', separator: '.', caseSensitive:true }) 
-			//)
-			// The config allows to configure the prefix, the separator and the caseSensitive option used by the library
-			// Default values:
-			// prefix: "ngx-webstorage"
-			// separator: "|"
-			// caseSensitive: false 
-		]
-		bootstrap: [...]
-	})
-	export class AppModule {
-	}
+	export const appConfig: ApplicationConfig = {
+  	providers: [
+ 	// Use this statement if your project is on newer versions of angular v19+
+	provideNgxWebstorage()
+ 	
+    // Use this statement if your project is in angular versions v13.x to the v18
+ 	provideNgxWebstorage(
+		withNgxWebstorageConfig({ prefix: 'custom', separator: '.', caseSensitive:true }) 
+		)
+		// The config allows to configure the prefix, the separator and the caseSensitive option used by the library
+		// Default values:
+		// prefix: "ngx-webstorage"
+		// separator: "|"
+		// caseSensitive: false 
+ 	 ],
+	};
 
 	```
 
@@ -112,37 +111,13 @@ It provides also two decorators to synchronize the component attributes and the 
 
 	}
 	```
-
-### <a name="provider_fn">Provider Function</a>
-
-Since the new standalone API and angular v15+, provider functions are now the way to go to configure your application ([learn more](https://angular.dev/reference/migrations/standalone)).
-
-1. From now on to setup your project, you can use the `provideNgxWebstorage` function.
-
-2. You can independently add the (you can of course add them both together):
-   - `localStorage` features with `withLocalStorage`
-   - `sessionStorage` features with `withLocalStorage`
-
-3. You can add a custom configuration with `withNgxWebstorageConfig`
-   
-```ts
-bootstrapApplication(AppComponent, {
-	providers: [
-		// ...
-		provideNgxWebstorage(
-			withNgxWebstorageConfig({ separator: ':', caseSensitive: true }),
-			withLocalStorage(),
-			withSessionStorage()
-		)
-	]
-})
-```
+------------
 
 ### <a name="services">Services</a>
---------------------
+### <a name="localsession">`LocalStorageService` `SessionStorageService`</a>
+> both APIs behave the same way
 
-### <a name="s_localstorage">`LocalStorageService`</a>
-
+### <a name="s_store">`.store`
 #### Store( key:`string`, value:`any` ):`void`
 > create or update an item in the local storage
 
@@ -174,9 +149,8 @@ export class FooComponent {
 
 }
 ````
-
 ------------
-
+### <a name="s_retrieve">`.retrieve`
 #### Retrieve( key:`string` ):`any`
 > retrieve a value from the local storage
 
@@ -210,10 +184,10 @@ export class FooComponent {
 
 }
 ````
-
 ------------
-
+### <a name="s_clear">`.clear`
 #### Clear( key?:`string` ):`void`
+> clear all itens storage
 
 ##### Params:
 - **key**: *(Optional)*     String.   localStorage key.
@@ -245,8 +219,9 @@ export class FooComponent {
 }
 ````
 ------------
-
+### <a name="s_isStorageAvailable">`.isStorageAvailable()`
 #### IsStorageAvailable():`boolean`
+> checks if the Web Storage API is available in the user's browser.
 
 ##### Usage:
 ````typescript
@@ -271,10 +246,10 @@ export class FooComponent implements OnInit {
 
 }
 ````
-
 ------------
-
+### <a name="s_observe">`.observe`
 #### Observe( key?:`string` ):`EventEmitter`
+> returns an `Observable` that emits the new value whenever the specified key changes in storage. This is useful for reacting to storage changes across your application.
 
 ##### Params:
 - **key**: *(Optional)*     localStorage key.
@@ -307,16 +282,10 @@ export class FooComponent {
 
 }
 ````
-
-
-### <a name="s_sessionstorage">`SessionStorageService`</a>
-> The api is identical as the LocalStorageService's
-
-### <a name="decorators">Decorators</a>
---------------------
+## <a name="decorators">Decorators</a>
 
 ### <a name="d_localstorage">`@LocalStorage`</a>
-> Synchronize the decorated attribute with a given value in the localStorage
+> synchronize the decorated attribute with a given value in the localStorage
 
 #### Params:
  - **storage key**: *(Optional)*    String.   localStorage key, by default the decorator will take the attribute name.
@@ -342,7 +311,7 @@ export class FooComponent {
 ------------
 
 ### <a name="d_sessionStorage">`@SessionStorage`</a>
-> Synchronize the decorated attribute with a given value in the sessionStorage
+> synchronize the decorated attribute with a given value in the sessionStorage
 
 #### Params:
  - **storage key**: *(Optional)*    String.   SessionStorage key, by default the decorator will take the attribute name.
@@ -365,10 +334,9 @@ export class FooComponent {
 }
 ````
 
-### <a name="knownissues">Known issues</a>
---------------------
+## <a name="knownissues">Known issues</a>
 
-- *Serialization doesn't work for objects:* 
+> serialization doesn't work for objects:
 
 NgxWebstorage's decorators are based upon accessors so the update trigger only on assignation. 
 Consequence, if you change the value of a bound object's property the new model will not be store properly. The same thing will happen with a push into a bound array. 
@@ -391,8 +359,7 @@ class FooBar {
 ````
 
 
-### <a name="modifBuild">Modify and build</a>
---------------------
+## <a name="modifBuild">Modify and build</a>
 
 `npm install`
 
